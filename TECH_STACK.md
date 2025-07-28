@@ -1,7 +1,8 @@
 # Matcha - Tech Stack Architecture
 
 ## Overview
-This document outlines the complete technology stack for the Matcha dating website project, designed to meet all mandatory requirements while providing a modern, scalable, and secure foundation.
+This document outlines the complete technology stack for our 42 matcha project.
+Bear in mind that this stack reflects the restrictions imposed by the subject, e.g. no validation libraries and no ORM.
 
 ## Frontend Stack
 
@@ -47,7 +48,6 @@ This document outlines the complete technology stack for the Matcha dating websi
 ### Authentication & Security
 - **Argon2** - Password hashing
 - **JWT** - Token-based authentication
-- **bcrypt** - Alternative password hashing option
 - **uuid** - Unique identifier generation
 
 ### Real-time Communication
@@ -90,6 +90,7 @@ This document outlines the complete technology stack for the Matcha dating websi
 - **Docker Compose** - Multi-container orchestration
 - **Git** - Version control
 - **GitHub Actions** - CI/CD pipeline
+- **cargo-watch** - Hot reload for Rust development
 
 ## Infrastructure & Deployment
 
@@ -145,7 +146,7 @@ This document outlines the complete technology stack for the Matcha dating websi
 
 ### Local Development
 1. **Docker Compose** - Start all services
-2. **Hot reloading** - Frontend and backend
+2. **Hot reloading** - Frontend (Vite) and backend (cargo-watch)
 3. **Database migrations** - Automated schema updates
 4. **Seed data** - Development data population
 
