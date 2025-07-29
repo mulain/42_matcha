@@ -45,7 +45,6 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Starting Matcha Backend Server...");
 
-
     let database_pool = database::create_pool(&config.database_url).await?;
 
     let cors = CorsLayer::new()

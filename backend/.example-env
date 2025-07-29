@@ -1,0 +1,21 @@
+# This is an example of the .env file for the backend.
+# Never enter actual values here, this is committed to the repository!
+
+ENVIRONMENT=Development
+
+PORT=3000
+
+FRONTEND_URL=http://localhost:5173
+
+DATABASE_URL=postgresql://postgres:password@localhost:5432/matcha_db
+
+JWT_SECRET="Shmismshmang"
+
+SMTP_HOST=live.smtp.mailtrap.io
+SMTP_PORT=587
+SMTP_USER=api
+SMTP_PASS=knudel
+FROM_EMAIL=noreply@knang.io
+
+ETHEREAL_USER=rashawn.carter@ethereal.email
+ETHEREAL_PASS=lukasdj123
