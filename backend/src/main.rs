@@ -26,9 +26,16 @@ mod websocket;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize tracing and logging
+    let config = config::Config::load().expect("Failed to load configuration");
+    
+    let max_level = match config.environment {
+        config::Environment::Development => Level::DEBUG,
+        config::Environment::Production => Level::INFO,
+        config::Environment::Test => Level::ERROR, 
+    };
+
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
+        .with_max_level(max_level)
         .with_target(false)
         .with_thread_ids(true)
         .with_thread_names(true)
@@ -38,19 +45,14 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Starting Matcha Backend Server...");
 
-    // Load configuration
-    let config = config::Config::load().expect("Failed to load configuration");
 
-    // Initialize database connection
     let database_pool = database::create_pool(&config.database_url).await?;
 
-    // Configure CORS
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
         .allow_headers(Any)
         .allow_origin(Any);
 
-    // Build application with middleware
     let app = Router::new()
         // Health check
         .route("/health", get(health_check))
@@ -90,13 +92,13 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/notifications/read", post(api::notifications::mark_as_read))
         .route("/api/notifications/read/:id", post(api::notifications::mark_single_as_read))
         
-        // WebSocket for real-time features
+        // WebSocket
         .route("/ws", get(websocket::handle_websocket))
         
-        // Add database state
+        // Database state
         .with_state(database_pool)
         
-        // Add middleware layers
+        // Middleware layers
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -104,7 +106,6 @@ async fn main() -> anyhow::Result<()> {
                 .layer(DefaultBodyLimit::max(10 * 1024 * 1024)), // 10MB limit
         );
 
-    // Run the server
     let addr = SocketAddr::from(([127, 0, 0, 1], config.port));
     info!("Server listening on {}", addr);
 
@@ -117,7 +118,6 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-// Health check endpoint
 async fn health_check() -> Json<Value> {
     Json(json!({
         "status": "healthy",
