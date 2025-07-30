@@ -22,7 +22,6 @@ mod database;
 mod enums;
 mod models;
 mod services;
-mod types;
 mod utils;
 mod websocket;
 
@@ -31,9 +30,9 @@ async fn main() -> anyhow::Result<()> {
     let config = config::Config::load().expect("Failed to load configuration");
     
     let max_level = match config.environment {
-        types::Environment::Development => Level::DEBUG,
-        types::Environment::Production => Level::INFO,
-        types::Environment::Test => Level::ERROR, 
+        enums::Environment::Development => Level::DEBUG,
+        enums::Environment::Production => Level::INFO,
+        enums::Environment::Test => Level::ERROR, 
     };
 
     let _subscriber = FmtSubscriber::builder()
