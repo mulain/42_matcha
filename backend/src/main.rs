@@ -1,6 +1,6 @@
 use axum::{
     extract::DefaultBodyLimit,
-    http::{Method, StatusCode},
+    http::Method,
     response::Json,
     routing::{get, post, put, delete},
     Router,
@@ -19,8 +19,10 @@ use tracing_subscriber::FmtSubscriber;
 mod api;
 mod config;
 mod database;
+mod enums;
 mod models;
 mod services;
+mod types;
 mod utils;
 mod websocket;
 
@@ -29,12 +31,12 @@ async fn main() -> anyhow::Result<()> {
     let config = config::Config::load().expect("Failed to load configuration");
     
     let max_level = match config.environment {
-        config::Environment::Development => Level::DEBUG,
-        config::Environment::Production => Level::INFO,
-        config::Environment::Test => Level::ERROR, 
+        types::Environment::Development => Level::DEBUG,
+        types::Environment::Production => Level::INFO,
+        types::Environment::Test => Level::ERROR, 
     };
 
-    let subscriber = FmtSubscriber::builder()
+    let _subscriber = FmtSubscriber::builder()
         .with_max_level(max_level)
         .with_target(false)
         .with_thread_ids(true)

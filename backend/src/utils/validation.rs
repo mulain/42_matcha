@@ -1,6 +1,5 @@
-use anyhow::{Context, Result};
-use std::collections::HashMap;
-use std::env;
+use anyhow::Result;
+use std::str::FromStr;
 
 /// Validation error with field name and message
 #[derive(Debug, Clone)]
@@ -28,11 +27,6 @@ impl ValidationError {
 
 /// Result type for validation operations
 pub type ValidationResult<T> = Result<T, ValidationError>;
-
-/// Trait for validatable types
-pub trait Validatable {
-    fn validate(&self) -> ValidationResult<()>;
-}
 
 /// Base schema trait
 pub trait Schema<T> {
@@ -310,50 +304,9 @@ impl Schema<String> for EmailSchema {
     }
 }
 
-/// Enum schema for validating enum values
-pub struct EnumSchema<T> {
-    pub required: bool,
-    pub values: Vec<T>,
-}
 
-impl<T: Clone + PartialEq + ToString> EnumSchema<T> {
-    pub fn new(values: Vec<T>) -> Self {
-        Self {
-            required: true,
-            values,
-        }
-    }
 
-    pub fn optional(mut self) -> Self {
-        self.required = false;
-        self
-    }
-}
 
-impl<T: Clone + PartialEq + ToString + std::fmt::Debug> Schema<T> for EnumSchema<T> {
-    fn validate(&self, value: &str) -> ValidationResult<T> {
-        if value.is_empty() && self.required {
-            return Err(ValidationError::new("value", "Value is required"));
-        }
-
-        if value.is_empty() && !self.required {
-            // Return first value as default
-            return Ok(self.values.first().unwrap().clone());
-        }
-
-        // Find matching enum value
-        for enum_value in &self.values {
-            if enum_value.to_string().to_lowercase() == value.to_lowercase() {
-                return Ok(enum_value.clone());
-            }
-        }
-
-        Err(ValidationError::new(
-            "value",
-            &format!("Value must be one of: {:?}", self.values),
-        ))
-    }
-}
 
 /// Convenience functions for creating schemas
 pub fn string() -> StringSchema {
@@ -372,16 +325,77 @@ pub fn email() -> EmailSchema {
     EmailSchema::new()
 }
 
-pub fn enum_values<T: Clone + PartialEq + ToString>(values: Vec<T>) -> EnumSchema<T> {
-    EnumSchema::new(values)
+/// Simple enum validation using FromStr trait (preferred for strum enums)
+pub fn enum_value<T: FromStr + Clone + PartialEq + ToString>() -> impl Schema<T> {
+    struct SimpleEnumSchema<T> {
+        _phantom: std::marker::PhantomData<T>,
+    }
+
+    impl<T: FromStr + Clone + PartialEq + ToString> Schema<T> for SimpleEnumSchema<T> {
+        fn validate(&self, value: &str) -> ValidationResult<T> {
+            if value.is_empty() {
+                return Err(ValidationError::new("value", "Value is required"));
+            }
+
+            T::from_str(value).map_err(|_| {
+                ValidationError::new("value", &format!("Invalid enum value: {}", value))
+            })
+        }
+    }
+
+    SimpleEnumSchema {
+        _phantom: std::marker::PhantomData,
+    }
 }
 
-/// Helper trait for enums that can provide their own values
-pub trait EnumValues {
-    fn all_values() -> Vec<Self> where Self: Sized;
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::enums::Environment;
 
-/// Helper function to create enum schema from enum that implements EnumValues
-pub fn enum_from_values<T: Clone + PartialEq + ToString + EnumValues>() -> EnumSchema<T> {
-    EnumSchema::new(T::all_values())
+    #[test]
+    fn test_enum_validation_with_environment() {
+        let schema = enum_value::<Environment>();
+        
+        // Test valid lowercase values (strum serialization)
+        assert!(schema.validate("development").is_ok());
+        assert!(schema.validate("production").is_ok());
+        assert!(schema.validate("test").is_ok());
+        
+        // Test invalid values
+        assert!(schema.validate("invalid").is_err());
+        assert!(schema.validate("dev").is_err());
+        assert!(schema.validate("").is_err());
+    }
+
+    #[test]
+    fn test_enum_validation_with_strum() {
+        let schema = enum_value::<Environment>();
+        
+        // Test that strum's FromStr implementation works correctly
+        assert_eq!(schema.validate("development").unwrap(), Environment::Development);
+        assert_eq!(schema.validate("production").unwrap(), Environment::Production);
+        assert_eq!(schema.validate("test").unwrap(), Environment::Test);
+        
+        // Test error messages
+        let result = schema.validate("invalid");
+        assert!(result.is_err());
+        if let Err(error) = result {
+            assert_eq!(error.field, "value");
+            assert!(error.message.contains("Invalid enum value"));
+        }
+    }
+
+    #[test]
+    fn test_enum_validation_error_messages() {
+        let schema = enum_value::<Environment>();
+        
+        let result = schema.validate("invalid");
+        assert!(result.is_err());
+        
+        if let Err(error) = result {
+            assert_eq!(error.field, "value");
+            assert!(error.message.contains("Invalid enum value"));
+        }
+    }
 } 
