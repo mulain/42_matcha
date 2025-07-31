@@ -55,4 +55,4 @@ pub async fn record_visit() -> Json<Value> {
         "message": "Record visit endpoint - to be implemented",
         "status": "not_implemented"
     }))
-} 
+}

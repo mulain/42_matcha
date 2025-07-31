@@ -20,4 +20,4 @@ pub async fn mark_single_as_read() -> Json<Value> {
         "message": "Mark single as read endpoint - to be implemented",
         "status": "not_implemented"
     }))
-} 
+}

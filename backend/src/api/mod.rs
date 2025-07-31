@@ -1,5 +1,5 @@
 pub mod auth;
-pub mod users;
-pub mod interactions;
 pub mod chat;
-pub mod notifications; 
+pub mod interactions;
+pub mod notifications;
+pub mod users;

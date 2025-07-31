@@ -6,4 +6,4 @@ pub async fn handle_websocket() -> Json<Value> {
         "message": "WebSocket endpoint - to be implemented",
         "status": "not_implemented"
     }))
-} 
+}

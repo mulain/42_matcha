@@ -1,0 +1,14 @@
+[build]
+# Enable incremental compilation for faster builds
+incremental = true
+
+[target.x86_64-unknown-linux-gnu]
+# Optimize for development
+rustflags = ["-C", "target-cpu=native"]
+
+[alias]
+# Development aliases
+dev = "run"
+lint = "clippy -- -D warnings"
+format = "fmt --all"
+check-all = "check && clippy -- -D warnings" 

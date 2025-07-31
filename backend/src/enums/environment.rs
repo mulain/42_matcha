@@ -36,6 +36,4 @@ mod tests {
         assert!(values.contains(&Environment::Production));
         assert!(values.contains(&Environment::Test));
     }
-
-
-} 
+}

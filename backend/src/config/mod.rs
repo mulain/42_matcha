@@ -1,6 +1,6 @@
-use std::env;
-use crate::utils::validation::{self, Schema};
 use crate::enums::Environment;
+use crate::validation::{self, Schema};
+use std::env;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -36,18 +36,15 @@ impl Config {
                 .integer()
                 .validate(&get_env_var("PORT"))?,
 
-            frontend_url: validation::url()
-                .validate(&get_env_var("FRONTEND_URL"))?,
+            frontend_url: validation::url().validate(&get_env_var("FRONTEND_URL"))?,
 
-            database_url: validation::url()
-                .validate(&get_env_var("DATABASE_URL"))?,
+            database_url: validation::url().validate(&get_env_var("DATABASE_URL"))?,
 
             jwt_secret: validation::string()
                 .min_length(32)
                 .validate(&get_env_var("JWT_SECRET"))?,
 
-            smtp_host: validation::string()
-                .validate(&get_env_var("SMTP_HOST"))?,
+            smtp_host: validation::string().validate(&get_env_var("SMTP_HOST"))?,
 
             smtp_port: validation::number()
                 .min_value(1.0)
@@ -55,20 +52,15 @@ impl Config {
                 .integer()
                 .validate(&get_env_var("SMTP_PORT"))?,
 
-            smtp_user: validation::string()
-                .validate(&get_env_var("SMTP_USER"))?,
+            smtp_user: validation::string().validate(&get_env_var("SMTP_USER"))?,
 
-            smtp_pass: validation::string()
-                .validate(&get_env_var("SMTP_PASS"))?,
+            smtp_pass: validation::string().validate(&get_env_var("SMTP_PASS"))?,
 
-            from_email: validation::email()
-                .validate(&get_env_var("FROM_EMAIL"))?,
+            from_email: validation::email().validate(&get_env_var("FROM_EMAIL"))?,
 
-            ethereal_user: validation::string()
-                .validate(&get_env_var("ETHEREAL_USER"))?,
+            ethereal_user: validation::string().validate(&get_env_var("ETHEREAL_USER"))?,
 
-            ethereal_pass: validation::string()
-                .validate(&get_env_var("ETHEREAL_PASS"))?,
+            ethereal_pass: validation::string().validate(&get_env_var("ETHEREAL_PASS"))?,
         };
 
         Ok(config)
@@ -85,4 +77,4 @@ impl Config {
     pub fn is_test(&self) -> bool {
         matches!(self.environment, Environment::Test)
     }
-} 
+}

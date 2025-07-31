@@ -20,4 +20,4 @@ pub async fn send_message() -> Json<Value> {
         "message": "Send message endpoint - to be implemented",
         "status": "not_implemented"
     }))
-} 
+}

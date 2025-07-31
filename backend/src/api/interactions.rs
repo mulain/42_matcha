@@ -27,4 +27,4 @@ pub async fn report_user() -> Json<Value> {
         "message": "Report user endpoint - to be implemented",
         "status": "not_implemented"
     }))
-} 
+}

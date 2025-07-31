@@ -34,4 +34,4 @@ pub async fn reset_password() -> Json<Value> {
         "message": "Reset password endpoint - to be implemented",
         "status": "not_implemented"
     }))
-} 
+}
