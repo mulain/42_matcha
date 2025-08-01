@@ -66,15 +66,5 @@ impl Config {
         Ok(config)
     }
 
-    pub fn is_development(&self) -> bool {
-        matches!(self.environment, Environment::Development)
-    }
 
-    pub fn is_production(&self) -> bool {
-        matches!(self.environment, Environment::Production)
-    }
-
-    pub fn is_test(&self) -> bool {
-        matches!(self.environment, Environment::Test)
-    }
 }

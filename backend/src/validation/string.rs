@@ -48,7 +48,7 @@ impl StringSchema {
 impl Schema<String> for StringSchema {
     fn validate(&self, value: &str) -> ValidationResult<String> {
         if value.is_empty() && self.required {
-            return Err(ValidationError::new("value", "Field is required"));
+            return Err(ValidationError::new("string", "Field is required"));
         }
 
         if value.is_empty() && !self.required {
@@ -58,7 +58,7 @@ impl Schema<String> for StringSchema {
         if let Some(min_len) = self.min_length {
             if value.len() < min_len {
                 return Err(ValidationError::new(
-                    "value",
+                    "string",
                     &format!("Minimum length is {} characters", min_len),
                 ));
             }
@@ -67,7 +67,7 @@ impl Schema<String> for StringSchema {
         if let Some(max_len) = self.max_length {
             if value.len() > max_len {
                 return Err(ValidationError::new(
-                    "value",
+                    "string",
                     &format!("Maximum length is {} characters", max_len),
                 ));
             }
@@ -75,13 +75,12 @@ impl Schema<String> for StringSchema {
 
         if let Some(ref _pattern) = self.pattern {
             // TODO: Implement regex pattern matching
-            // For now, we'll skip pattern validation
         }
 
         if let Some(ref allowed_values) = self.allowed_values {
             if !allowed_values.contains(&value.to_string()) {
                 return Err(ValidationError::new(
-                    "value",
+                    "string",
                     &format!("Value must be one of: {:?}", allowed_values),
                 ));
             }
@@ -91,7 +90,6 @@ impl Schema<String> for StringSchema {
     }
 }
 
-/// Convenience function for creating string schemas
 pub fn string() -> StringSchema {
     StringSchema::new()
 }
