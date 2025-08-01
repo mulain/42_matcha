@@ -1,17 +1,17 @@
 // Core validation types and trait
 pub mod core;
-pub use core::{Schema, ValidationError, ValidationResult};
+pub use core::Validator;
 
-// Individual schema modules
+// Individual modules
 pub mod email;
-pub mod enum_schema;
+pub mod enums;
 pub mod number;
 pub mod string;
 pub mod url;
 
-// Re-export convenience functions and schemas
-pub use email::{email, EmailSchema};
-pub use enum_schema::enum_value;
-pub use number::{number, NumberSchema};
-pub use string::{string, StringSchema};
-pub use url::{url, UrlSchema};
+// Re-export convenience functions
+pub use email::email;
+pub use enums::enums;
+pub use number::number;
+pub use string::string;
+pub use url::url;

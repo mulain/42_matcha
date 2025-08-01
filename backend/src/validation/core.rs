@@ -25,6 +25,6 @@ impl ValidationError {
 
 pub type ValidationResult<T> = Result<T, ValidationError>;
 
-pub trait Schema<T> {
-    fn validate(&self, value: &str) -> ValidationResult<T>;
+pub trait Validator<T> {
+    fn validate(&self, value: &str) -> ValidationResult<Option<T>>;
 }

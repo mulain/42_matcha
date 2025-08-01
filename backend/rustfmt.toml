@@ -3,7 +3,6 @@
 
 # Indentation
 tab_spaces = 4
-indent_style = "Spaces"
 
 # Line length
 max_width = 100
@@ -12,15 +11,7 @@ max_width = 100
 fn_call_width = 100
 
 # Control flow
-control_brace_style = "AlwaysNextLine"
-else_trailing_comma = false
-if_trailing_comma = false
 match_arm_leading_pipes = "Never"
-match_arm_wrapping = "Preserve"
-
-# Comments
-comment_width = 100
-wrap_comments = true
 
 # Other
 edition = "2021"

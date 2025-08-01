@@ -1,4 +1,4 @@
-use super::core::{Schema, ValidationError, ValidationResult};
+use super::core::{ValidationError, ValidationResult, Validator};
 
 pub struct EmailSchema {
     pub required: bool,
@@ -23,42 +23,62 @@ impl EmailSchema {
     }
 
     fn is_valid_local_part(local: &str) -> bool {
-        if local.is_empty() || local.len() > 64 { return false; }
-        if local.starts_with('.') || local.ends_with('.') { return false; }
-        if local.starts_with('-') || local.ends_with('-') { return false; } // Allowed by RFC 5322, but generally not allowed in local parts
-        if local.contains("..") { return false; }
+        if local.is_empty() || local.len() > 64 {
+            return false;
+        }
+        if local.starts_with('.') || local.ends_with('.') {
+            return false;
+        }
+        // Allowed by RFC 5322, but generally disallowed
+        if local.starts_with('-') || local.ends_with('-') {
+            return false;
+        }
+        if local.contains("..") {
+            return false;
+        }
         local.chars().all(Self::allowed_local_char)
     }
 
     fn is_valid_domain_part(domain: &str) -> bool {
-        if domain.is_empty() || domain.len() > 253 { return false; }
-        if domain.starts_with('.') || domain.ends_with('.') { return false; }
-        if domain.contains("..") { return false; }
+        if domain.is_empty() || domain.len() > 253 {
+            return false;
+        }
+        if domain.starts_with('.') || domain.ends_with('.') {
+            return false;
+        }
+        if domain.contains("..") {
+            return false;
+        }
         if !domain.chars().all(Self::allowed_domain_char) {
             return false;
         }
-        
-        
+
         let labels: Vec<&str> = domain.split('.').collect();
-        if labels.len() < 2 { return false; }
-        
+        if labels.len() < 2 {
+            return false;
+        }
+
         labels.into_iter().all(Self::is_valid_domain_label)
     }
 
     fn is_valid_domain_label(label: &str) -> bool {
-        if label.is_empty() || label.len() > 63 { return false; }
-        if label.starts_with('-') || label.ends_with('-') { return false; }
+        if label.is_empty() || label.len() > 63 {
+            return false;
+        }
+        if label.starts_with('-') || label.ends_with('-') {
+            return false;
+        }
         label.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
     }
 }
 
-impl Schema<String> for EmailSchema {
-    fn validate(&self, value: &str) -> ValidationResult<String> {
+impl Validator<String> for EmailSchema {
+    fn validate(&self, value: &str) -> ValidationResult<Option<String>> {
         if value.is_empty() {
             if self.required {
                 return Err(ValidationError::new("email", "Email is required"));
             } else {
-                return Ok(value.to_string());
+                return Ok(None);
             }
         }
 
@@ -80,7 +100,10 @@ impl Schema<String> for EmailSchema {
 
         let parts: Vec<&str> = value.split('@').collect();
         if parts.len() != 2 {
-            return Err(ValidationError::new("email", "Invalid email format: missing local part or domain"));
+            return Err(ValidationError::new(
+                "email",
+                "Invalid email format: missing local part or domain",
+            ));
         }
 
         let local_part = parts[0];
@@ -94,7 +117,7 @@ impl Schema<String> for EmailSchema {
             return Err(ValidationError::new("email", "Invalid domain part"));
         }
 
-        Ok(value.to_string())
+        Ok(Some(value.to_string()))
     }
 }
 
@@ -109,7 +132,7 @@ mod tests {
     #[test]
     fn test_valid_emails() {
         let schema = email();
-        
+
         let valid_emails = vec![
             "user@example.com",
             "user.name@domain.co.uk",
@@ -129,29 +152,25 @@ mod tests {
     #[test]
     fn test_injection_attacks() {
         let schema = email();
-        
+
         let injection_attempts = vec![
             // SQL injection attempts
             "user'; DROP TABLE users; --@example.com",
             "user' OR '1'='1@example.com",
             "user' UNION SELECT * FROM users@example.com",
             "user' AND 1=1@example.com",
-            
             // XSS injection attempts
             "<script>alert('xss')</script>@example.com",
             "user<img src=x onerror=alert(1)>@example.com",
             "user\"<script>alert('xss')</script>@example.com",
-            
             // Command injection attempts
             "user; rm -rf /@example.com",
             "user`rm -rf /`@example.com",
             "user$(rm -rf /)@example.com",
             "user|rm -rf /@example.com",
-            
             // Path traversal attempts
             "../../../etc/passwd@example.com",
             "..\\..\\..\\windows\\system32@example.com",
-            
             // HTML injection attempts
             "user<iframe src=javascript:alert(1)>@example.com",
             "user<object data=javascript:alert(1)>@example.com",
@@ -167,10 +186,10 @@ mod tests {
     #[test]
     fn test_illegal_characters() {
         let schema = email();
-        
+
         let illegal_chars = vec![
-            '(', ')', '<', '>', '[', ']', ':', ';', '@', '\\', ',', '"', ' ',
-            '\t', '\n', '\r', '\0', '\x1b', // Control characters
+            '(', ')', '<', '>', '[', ']', ':', ';', '@', '\\', ',', '"', ' ', '\t', '\n', '\r',
+            '\0', '\x1b', // Control characters
         ];
 
         for &char in &illegal_chars {
@@ -183,26 +202,28 @@ mod tests {
     #[test]
     fn test_control_characters() {
         let schema = email();
-        
+
         let control_chars = vec![
-            '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07',
-            '\x08', '\x09', '\x0a', '\x0b', '\x0c', '\x0d', '\x0e', '\x0f',
-            '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17',
-            '\x18', '\x19', '\x1a', '\x1b', '\x1c', '\x1d', '\x1e', '\x1f',
-            '\x7f',
+            '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', '\x08', '\x09', '\x0a',
+            '\x0b', '\x0c', '\x0d', '\x0e', '\x0f', '\x10', '\x11', '\x12', '\x13', '\x14', '\x15',
+            '\x16', '\x17', '\x18', '\x19', '\x1a', '\x1b', '\x1c', '\x1d', '\x1e', '\x1f', '\x7f',
         ];
 
         for &char in &control_chars {
             let test_email = format!("user{}@example.com", char);
             let result = schema.validate(&test_email);
-            assert!(result.is_err(), "Email with control char '0x{:02x}' should be rejected", char as u8);
+            assert!(
+                result.is_err(),
+                "Email with control char '0x{:02x}' should be rejected",
+                char as u8
+            );
         }
     }
 
     #[test]
     fn test_non_ascii_characters() {
         let schema = email();
-        
+
         let non_ascii_chars = vec![
             'é', 'ñ', 'ü', 'ß', 'α', 'β', 'γ', 'あ', 'い', 'う', '😀', '🎉',
         ];
@@ -217,7 +238,7 @@ mod tests {
     #[test]
     fn test_length_limits() {
         let schema = email();
-        
+
         // Test maximum email length (254 characters)
         let long_local = "a".repeat(64);
         // Create a domain with valid labels (max 63 chars each) and proper structure
@@ -229,25 +250,28 @@ mod tests {
         let long_domain = format!("{}.{}.{}", label1, label2, label3);
         let max_length_email = format!("{}@{}", long_local, long_domain);
         assert!(schema.validate(&max_length_email).is_ok(), "Email at max length should be valid");
-        
+
         // Test email exceeding maximum length
         let too_long_domain = format!("{}a", long_domain);
         let too_long_email = format!("{}@{}.com", long_local, too_long_domain);
-        assert!(schema.validate(&too_long_email).is_err(), "Email exceeding max length should be rejected");
+        assert!(
+            schema.validate(&too_long_email).is_err(),
+            "Email exceeding max length should be rejected"
+        );
     }
 
     #[test]
     fn test_local_part_validation() {
         let schema = email();
-        
+
         let invalid_local_parts = vec![
-            "", // Empty local part
-            ".user@example.com", // Starts with dot
-            "user.@example.com", // Ends with dot
+            "",                       // Empty local part
+            ".user@example.com",      // Starts with dot
+            "user.@example.com",      // Ends with dot
             "user..name@example.com", // Consecutive dots
-            "user name@example.com", // Contains space
-            "user<name@example.com", // Contains illegal char
-            "user(name@example.com", // Contains illegal char
+            "user name@example.com",  // Contains space
+            "user<name@example.com",  // Contains illegal char
+            "user(name@example.com",  // Contains illegal char
         ];
 
         for local_part in invalid_local_parts {
@@ -266,16 +290,16 @@ mod tests {
     #[test]
     fn test_domain_part_validation() {
         let schema = email();
-        
+
         let invalid_domain_parts = vec![
-            "", // Empty domain
+            "",             // Empty domain
             ".example.com", // Starts with dot
             "example.com.", // Ends with dot
             "example..com", // Consecutive dots
-            "example com", // Contains space
-            "example<com", // Contains illegal char
-            "example(com", // Contains illegal char
-            "example", // No TLD
+            "example com",  // Contains space
+            "example<com",  // Contains illegal char
+            "example(com",  // Contains illegal char
+            "example",      // No TLD
             "example-.com", // Ends with hyphen
             "-example.com", // Starts with hyphen
         ];
@@ -296,9 +320,9 @@ mod tests {
     #[test]
     fn test_domain_label_validation() {
         let schema = email();
-        
+
         let invalid_labels = vec![
-            "", // Empty label
+            "",           // Empty label
             "-label.com", // Starts with hyphen
             "label-.com", // Ends with hyphen
             "label<.com", // Contains illegal char
@@ -321,19 +345,19 @@ mod tests {
     #[test]
     fn test_edge_cases() {
         let schema = email();
-        
+
         let edge_cases = vec![
-            "@example.com", // Missing local part
-            "user@", // Missing domain
-            "user@@example.com", // Multiple @ symbols
-            "user@example@com", // Multiple @ symbols
-            "user@example..com", // Consecutive dots in domain
+            "@example.com",           // Missing local part
+            "user@",                  // Missing domain
+            "user@@example.com",      // Multiple @ symbols
+            "user@example@com",       // Multiple @ symbols
+            "user@example..com",      // Consecutive dots in domain
             "user..name@example.com", // Consecutive dots in local part
-            "user@-example.com", // Domain label starts with hyphen
-            "user@example-.com", // Domain label ends with hyphen
-            "user@example.com-", // Domain ends with hyphen
-            "-user@example.com", // Local part starts with hyphen
-            "user-@example.com", // Local part ends with hyphen
+            "user@-example.com",      // Domain label starts with hyphen
+            "user@example-.com",      // Domain label ends with hyphen
+            "user@example.com-",      // Domain ends with hyphen
+            "-user@example.com",      // Local part starts with hyphen
+            "user-@example.com",      // Local part ends with hyphen
         ];
 
         for email in edge_cases {
@@ -345,21 +369,26 @@ mod tests {
     #[test]
     fn test_optional_validation() {
         let schema = email().optional();
-        
-        // Empty email should be valid when optional
-        assert!(schema.validate("").is_ok(), "Empty email should be valid when optional");
-        
-        // Valid email should still be valid
-        assert!(schema.validate("user@example.com").is_ok(), "Valid email should be valid when optional");
-        
+
+        // Empty email should return None when optional
+        let result: ValidationResult<Option<String>> = schema.validate("");
+        assert!(result.is_ok(), "Empty email should be valid when optional");
+        assert_eq!(result.unwrap(), None);
+
+        // Valid email should return Some(email) when optional
+        let result: ValidationResult<Option<String>> = schema.validate("user@example.com");
+        assert!(result.is_ok(), "Valid email should be valid when optional");
+        assert_eq!(result.unwrap(), Some("user@example.com".to_string()));
+
         // Invalid email should still be rejected
-        assert!(schema.validate("invalid").is_err(), "Invalid email should be rejected even when optional");
+        let result: ValidationResult<Option<String>> = schema.validate("invalid");
+        assert!(result.is_err(), "Invalid email should be rejected even when optional");
     }
 
     #[test]
     fn test_unicode_normalization_attacks() {
         let schema = email();
-        
+
         // Test for Unicode normalization attacks
         let unicode_attacks = vec![
             "user\u{0300}@example.com", // Combining grave accent
@@ -378,7 +407,7 @@ mod tests {
     #[test]
     fn test_null_byte_injection() {
         let schema = email();
-        
+
         let null_byte_emails = vec![
             "user\0@example.com",
             "user@\0example.com",

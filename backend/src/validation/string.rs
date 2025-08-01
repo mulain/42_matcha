@@ -1,4 +1,4 @@
-use super::core::{Schema, ValidationError, ValidationResult};
+use super::core::{ValidationError, ValidationResult, Validator};
 
 pub struct StringSchema {
     pub required: bool,
@@ -45,14 +45,14 @@ impl StringSchema {
     }
 }
 
-impl Schema<String> for StringSchema {
-    fn validate(&self, value: &str) -> ValidationResult<String> {
-        if value.is_empty() && self.required {
-            return Err(ValidationError::new("string", "Field is required"));
-        }
-
-        if value.is_empty() && !self.required {
-            return Ok(value.to_string());
+impl Validator<String> for StringSchema {
+    fn validate(&self, value: &str) -> ValidationResult<Option<String>> {
+        if value.is_empty() {
+            if self.required {
+                return Err(ValidationError::new("string", "Field is required"));
+            } else {
+                return Ok(None);
+            }
         }
 
         if let Some(min_len) = self.min_length {
@@ -86,7 +86,7 @@ impl Schema<String> for StringSchema {
             }
         }
 
-        Ok(value.to_string())
+        Ok(Some(value.to_string()))
     }
 }
 

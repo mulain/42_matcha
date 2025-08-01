@@ -2,7 +2,7 @@ use axum::{
     extract::DefaultBodyLimit,
     http::Method,
     response::Json,
-    routing::{get, post, put, delete},
+    routing::{delete, get, post, put},
     Router,
 };
 use serde_json::{json, Value};
@@ -28,7 +28,7 @@ mod websocket;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let config = config::Config::load().expect("Failed to load configuration");
+    let config = config::Config::load()?;
 
     let max_level = match config.environment {
         enums::Environment::Development => Level::DEBUG,

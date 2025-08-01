@@ -1,5 +1,5 @@
 use crate::enums::Environment;
-use crate::validation::{self, Schema};
+use crate::validation::{self, Validator};
 use std::env;
 
 #[derive(Debug, Clone)]
@@ -22,49 +22,67 @@ impl Config {
     pub fn load() -> anyhow::Result<Self> {
         dotenvy::dotenv().ok();
 
-        fn get_env_var(name: &str) -> String {
-            env::var(name).expect(&format!("'{}' env variable must be set", name))
+        fn get_env_var(name: &str) -> anyhow::Result<String> {
+            env::var(name).map_err(|_| anyhow::anyhow!("'{}' env variable must be set", name))
         }
 
         let config = Config {
-            environment: validation::enum_value::<Environment>()
-                .validate(&get_env_var("ENVIRONMENT"))?,
+            environment: validation::enums::<Environment>()
+                .validate(&get_env_var("ENVIRONMENT")?)?
+                .ok_or_else(|| anyhow::anyhow!("ENVIRONMENT is required"))?,
 
             port: validation::number()
                 .min_value(1.0)
                 .max_value(65535.0)
                 .integer()
-                .validate(&get_env_var("PORT"))?,
+                .validate(&get_env_var("PORT")?)?
+                .ok_or_else(|| anyhow::anyhow!("PORT is required"))?,
 
-            frontend_url: validation::url().validate(&get_env_var("FRONTEND_URL"))?,
+            frontend_url: validation::url()
+                .validate(&get_env_var("FRONTEND_URL")?)?
+                .ok_or_else(|| anyhow::anyhow!("FRONTEND_URL is required"))?,
 
-            database_url: validation::url().validate(&get_env_var("DATABASE_URL"))?,
+            database_url: validation::url()
+                .validate(&get_env_var("DATABASE_URL")?)?
+                .ok_or_else(|| anyhow::anyhow!("DATABASE_URL is required"))?,
 
             jwt_secret: validation::string()
                 .min_length(32)
-                .validate(&get_env_var("JWT_SECRET"))?,
+                .validate(&get_env_var("JWT_SECRET")?)?
+                .ok_or_else(|| anyhow::anyhow!("JWT_SECRET is required"))?,
 
-            smtp_host: validation::string().validate(&get_env_var("SMTP_HOST"))?,
+            smtp_host: validation::string()
+                .validate(&get_env_var("SMTP_HOST")?)?
+                .ok_or_else(|| anyhow::anyhow!("SMTP_HOST is required"))?,
 
             smtp_port: validation::number()
                 .min_value(1.0)
                 .max_value(65535.0)
                 .integer()
-                .validate(&get_env_var("SMTP_PORT"))?,
+                .validate(&get_env_var("SMTP_PORT")?)?
+                .ok_or_else(|| anyhow::anyhow!("SMTP_PORT is required"))?,
 
-            smtp_user: validation::string().validate(&get_env_var("SMTP_USER"))?,
+            smtp_user: validation::string()
+                .validate(&get_env_var("SMTP_USER")?)?
+                .ok_or_else(|| anyhow::anyhow!("SMTP_USER is required"))?,
 
-            smtp_pass: validation::string().validate(&get_env_var("SMTP_PASS"))?,
+            smtp_pass: validation::string()
+                .validate(&get_env_var("SMTP_PASS")?)?
+                .ok_or_else(|| anyhow::anyhow!("SMTP_PASS is required"))?,
 
-            from_email: validation::email().validate(&get_env_var("FROM_EMAIL"))?,
+            from_email: validation::email()
+                .validate(&get_env_var("FROM_EMAIL")?)?
+                .ok_or_else(|| anyhow::anyhow!("FROM_EMAIL is required"))?,
 
-            ethereal_user: validation::string().validate(&get_env_var("ETHEREAL_USER"))?,
+            ethereal_user: validation::string()
+                .validate(&get_env_var("ETHEREAL_USER")?)?
+                .ok_or_else(|| anyhow::anyhow!("ETHEREAL_USER is required"))?,
 
-            ethereal_pass: validation::string().validate(&get_env_var("ETHEREAL_PASS"))?,
+            ethereal_pass: validation::string()
+                .validate(&get_env_var("ETHEREAL_PASS")?)?
+                .ok_or_else(|| anyhow::anyhow!("ETHEREAL_PASS is required"))?,
         };
 
         Ok(config)
     }
-
-
 }
