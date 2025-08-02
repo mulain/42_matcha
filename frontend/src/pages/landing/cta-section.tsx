@@ -16,7 +16,7 @@ const CtaSection = () => {
           viewport={{ once: true }}
           className='space-y-6'
         >
-          <h2 className='text-4xl font-bold text-white mb-4'>Ready to Find Your Perfect Match?</h2>
+          <h2 className='text-4xl font-bold text-white mb-4'>Ready to Find Your Mate?</h2>
           <p className='text-xl text-primary-100 mb-8'>
             Join the, like, two people who have found meaningful connections on Matcha.
           </p>

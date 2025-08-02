@@ -24,7 +24,7 @@ const HeroSection = () => {
                 className='inline-flex items-center space-x-2 bg-gray-800 text-primary-400 px-4 py-2 rounded-full text-sm font-medium border border-gray-700'
               >
                 <Sparkles className='w-4 h-4' />
-                <span>Find Your Perfect Match</span>
+                <span>Get Knudling Now</span>
               </motion.div>
 
               <motion.h1
@@ -33,10 +33,10 @@ const HeroSection = () => {
                 transition={{ delay: 0.4, duration: 0.6 }}
                 className='text-5xl lg:text-6xl font-bold text-white leading-tight'
               >
-                Where
-                <span className='text-primary-400'> Love </span>
-                Meets
-                <span className='text-secondary-400'> Technology</span>
+                Find Your
+                <span className='text-primary-400'> Perfect </span>
+                Match in the
+                <span className='text-secondary-400'> Dating Jungle</span>
               </motion.h1>
 
               <motion.p
@@ -45,8 +45,8 @@ const HeroSection = () => {
                 transition={{ delay: 0.6, duration: 0.6 }}
                 className='text-xl text-gray-300 leading-relaxed'
               >
-                Discover meaningful connections with people who share your interests, values, and
-                dreams. Our intelligent matching system helps you find your perfect match.
+                Venture into the wild world of dating with confidence. Our intelligent matching system 
+                helps you navigate through the dating jungle to find your perfect companion.
               </motion.p>
             </div>
 
@@ -59,7 +59,7 @@ const HeroSection = () => {
               {!isAuthenticated && (
                 <>
                   <Link to='/register' className='btn-primary text-lg px-8 py-4'>
-                    Start Your Journey
+                    Start Your Adventure
                   </Link>
                   <Link to='/login' className='btn-outline text-lg px-8 py-4'>
                     Sign In

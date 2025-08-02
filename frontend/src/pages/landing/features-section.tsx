@@ -37,8 +37,7 @@ const FeaturesSection = () => {
         >
           <h2 className='text-4xl font-bold text-white mb-4'>Why Choose Matcha?</h2>
           <p className='text-xl text-gray-400 max-w-3xl mx-auto'>
-            Our platform combines cutting-edge technology with human connection to create meaningful
-            relationships.
+            We take the wild out of the jungle.
           </p>
         </motion.div>
 
