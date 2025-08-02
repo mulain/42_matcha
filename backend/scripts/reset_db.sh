@@ -25,7 +25,8 @@ DB_USER=$(echo "$DATABASE_URL" | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
 BASE_URL=$(echo "$DATABASE_URL" | sed 's/\/[^?]*\([?].*\)\?/\1/')
 POSTGRES_URL="postgresql://$DB_USER@$DB_HOST:5432/postgres"
 
-echo "⚠️  WARNING: This will destroy the database '$DB_NAME' on '$DB_HOST'"
+echo "⚠️  WARNING: 
+This will destroy the database '$DB_NAME' on '$DB_HOST'"
 echo "⚠️  All data will be permanently deleted!"
 echo ""
 read -p "Are you sure you want to continue? Type 'NUKE' to confirm: " confirm
