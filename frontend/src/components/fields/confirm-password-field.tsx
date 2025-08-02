@@ -1,6 +1,5 @@
-import React, { forwardRef } from 'react'
-import ValidatedInput from '../validated-input'
-import { validateConfirmPassword } from '../../utils/validation'
+import React, { forwardRef, useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 
 interface ConfirmPasswordFieldProps {
   name?: string
@@ -14,6 +13,7 @@ interface ConfirmPasswordFieldProps {
   disabled?: boolean
   autoComplete?: string
   showPasswordToggle?: boolean
+  error?: string
 }
 
 const ConfirmPasswordField = forwardRef<HTMLInputElement, ConfirmPasswordFieldProps>(
@@ -28,26 +28,53 @@ const ConfirmPasswordField = forwardRef<HTMLInputElement, ConfirmPasswordFieldPr
     onBlur,
     disabled = false,
     autoComplete = 'new-password',
-    showPasswordToggle = true
+    showPasswordToggle = true,
+    error
   }, ref) => {
-    const validator = (value: string) => validateConfirmPassword(password, value)
+    const [showPassword, setShowPassword] = useState(false)
 
     return (
-      <ValidatedInput
-        ref={ref}
-        label={label}
-        type='password'
-        name={name}
-        placeholder={placeholder}
-        required={required}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        validator={validator}
-        showPasswordToggle={showPasswordToggle}
-      />
+      <div className='space-y-2'>
+        <label htmlFor={name} className='block text-sm font-medium text-gray-700'>
+          {label}
+          {required && <span className='text-red-500 ml-1'>*</span>}
+        </label>
+        <div className='relative'>
+          <input
+            ref={ref}
+            type={showPassword ? 'text' : 'password'}
+            id={name}
+            name={name}
+            placeholder={placeholder}
+            required={required}
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            disabled={disabled}
+            autoComplete={autoComplete}
+            className={`
+              w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+              ${error 
+                ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                : 'border-gray-300'
+              }
+              ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+            `}
+          />
+          {showPasswordToggle && (
+            <button
+              type='button'
+              className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
+            </button>
+          )}
+        </div>
+        {error && (
+          <p className='text-sm text-red-600'>{error}</p>
+        )}
+      </div>
     )
   }
 )
