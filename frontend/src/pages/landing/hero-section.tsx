@@ -7,7 +7,7 @@ const HeroSection = () => {
   const { isAuthenticated } = useAuthStore()
 
   return (
-    <section className='relative px-6 py-20'>
+    <section className='relative px-6 py-20 bg-gray-900'>
       <div className='max-w-7xl mx-auto'>
         <div className='grid lg:grid-cols-2 gap-12 items-center'>
           <motion.div
@@ -21,7 +21,7 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
-                className='inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium'
+                className='inline-flex items-center space-x-2 bg-gray-800 text-primary-400 px-4 py-2 rounded-full text-sm font-medium border border-gray-700'
               >
                 <Sparkles className='w-4 h-4' />
                 <span>Find Your Perfect Match</span>
@@ -31,19 +31,19 @@ const HeroSection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className='text-5xl lg:text-6xl font-bold text-gray-900 leading-tight'
+                className='text-5xl lg:text-6xl font-bold text-white leading-tight'
               >
                 Where
-                <span className='text-primary-600'> Love </span>
+                <span className='text-primary-400'> Love </span>
                 Meets
-                <span className='text-secondary-600'> Technology</span>
+                <span className='text-secondary-400'> Technology</span>
               </motion.h1>
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className='text-xl text-gray-600 leading-relaxed'
+                className='text-xl text-gray-300 leading-relaxed'
               >
                 Discover meaningful connections with people who share your interests, values, and
                 dreams. Our intelligent matching system helps you find your perfect match.
@@ -86,7 +86,7 @@ const HeroSection = () => {
                 }}
               />
             </div>
-            <div className='absolute inset-0 bg-gradient-to-r from-primary-200 to-secondary-200 rounded-2xl transform rotate-3 scale-105 opacity-20'></div>
+            <div className='absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl transform rotate-3 scale-105 opacity-20'></div>
           </motion.div>
         </div>
       </div>
