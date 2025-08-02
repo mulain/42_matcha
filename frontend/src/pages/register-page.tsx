@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, Eye, EyeOff } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import Form from '../components/form'
-import FormInput from '../components/form-input'
 import Button from '../components/button'
-import { validateForm, ValidationError } from '../utils/validation'
+import { EmailField, PasswordField, UsernameField, NameField, ConfirmPasswordField } from '../components/fields'
 
 interface FormData {
   email: string
@@ -13,7 +12,6 @@ interface FormData {
   lastName: string
   password: string
   confirmPassword: string
-  [key: string]: string
 }
 
 const RegisterPage = () => {
@@ -27,43 +25,26 @@ const RegisterPage = () => {
     confirmPassword: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    const validationErrors = validateForm({ [name]: value })
-    const fieldError = validationErrors.find(error => error.field === name)
-    
-    if (fieldError) {
-      setErrors(prev => ({ ...prev, [name]: fieldError.message }))
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate all fields
-    const validationErrors = validateForm(formData)
-    const errorMap: Record<string, string> = {}
+    // Check if all required fields have values
+    const requiredFields = ['email', 'username', 'firstName', 'lastName', 'password', 'confirmPassword']
+    const missingFields = requiredFields.filter(field => !formData[field as keyof FormData])
     
-    validationErrors.forEach(error => {
-      errorMap[error.field] = error.message
-    })
-    
-    if (validationErrors.length > 0) {
-      setErrors(errorMap)
+    if (missingFields.length > 0) {
+      setErrors({ general: 'Please fill in all required fields.' })
       return
     }
 
@@ -100,98 +81,50 @@ const RegisterPage = () => {
         <div className='bg-white py-8 px-6 shadow rounded-lg'>
           <Form onSubmit={handleSubmit}>
             <div className='grid grid-cols-2 gap-4'>
-              <FormInput
-                label='First Name'
+              <NameField
                 name='firstName'
+                label='First Name'
                 placeholder='John'
-                required
                 value={formData.firstName}
                 onChange={handleInputChange}
-                onBlur={handleInputBlur}
-                error={errors.firstName}
+                fieldName='First name'
                 autoComplete='given-name'
               />
-              <FormInput
-                label='Last Name'
+              <NameField
                 name='lastName'
+                label='Last Name'
                 placeholder='Doe'
-                required
                 value={formData.lastName}
                 onChange={handleInputChange}
-                onBlur={handleInputBlur}
-                error={errors.lastName}
+                fieldName='Last name'
                 autoComplete='family-name'
               />
             </div>
 
-            <FormInput
-              label='Email'
-              type='email'
+            <EmailField
               name='email'
-              placeholder='john@example.com'
-              required
               value={formData.email}
               onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              error={errors.email}
-              autoComplete='email'
             />
 
-            <FormInput
-              label='Username'
+            <UsernameField
               name='username'
-              placeholder='johndoe'
-              required
               value={formData.username}
               onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              error={errors.username}
-              autoComplete='username'
             />
 
-            <div className='relative'>
-              <FormInput
-                label='Password'
-                type={showPassword ? 'text' : 'password'}
-                name='password'
-                placeholder='••••••••'
-                required
-                value={formData.password}
-                onChange={handleInputChange}
-                onBlur={handleInputBlur}
-                error={errors.password}
-                autoComplete='new-password'
-              />
-              <button
-                type='button'
-                className='absolute right-3 top-8 text-gray-400 hover:text-gray-600'
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
-              </button>
-            </div>
+            <PasswordField
+              name='password'
+              value={formData.password}
+              onChange={handleInputChange}
+            />
 
-            <div className='relative'>
-              <FormInput
-                label='Confirm Password'
-                type={showConfirmPassword ? 'text' : 'password'}
-                name='confirmPassword'
-                placeholder='••••••••'
-                required
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                onBlur={handleInputBlur}
-                error={errors.confirmPassword}
-                autoComplete='new-password'
-              />
-              <button
-                type='button'
-                className='absolute right-3 top-8 text-gray-400 hover:text-gray-600'
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
-              </button>
-            </div>
+            <ConfirmPasswordField
+              name='confirmPassword'
+              value={formData.confirmPassword}
+              password={formData.password}
+              onChange={handleInputChange}
+            />
 
             {errors.general && (
               <div className='text-sm text-red-600 bg-red-50 p-3 rounded-lg'>
