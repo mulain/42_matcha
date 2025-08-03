@@ -9,6 +9,22 @@ pub enum AccountStatus {
     Banned,
 }
 
+#[derive(Debug, Clone, PartialEq, Display, EnumIter, EnumString, Serialize, Deserialize)]
+#[strum(serialize_all = "lowercase")]
+pub enum Gender {
+    Male,
+    Female,
+    Other,
+}
+
+#[derive(Debug, Clone, PartialEq, Display, EnumIter, EnumString, Serialize, Deserialize)]
+#[strum(serialize_all = "lowercase")]
+pub enum SexualPreference {
+    Heterosexual,
+    Homosexual,
+    Bisexual,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

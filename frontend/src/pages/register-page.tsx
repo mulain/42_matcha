@@ -1,4 +1,3 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import AuthForm from '../components/auth-form'
@@ -12,13 +11,10 @@ const RegisterPage = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch
   } = useForm<RegisterFormData>({
     resolver: registerResolver,
     mode: 'onBlur'
   })
-
-  const watchedPassword = watch('password')
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -52,15 +48,13 @@ const RegisterPage = () => {
           <div className='grid grid-cols-2 gap-4'>
             <NameField
               label='First Name'
-              placeholder='John'
-              autoComplete='given-name'
+              placeholder='Your First Name'
               {...register('firstName')}
               error={errors.firstName?.message}
             />
             <NameField
               label='Last Name'
-              placeholder='Doe'
-              autoComplete='family-name'
+              placeholder='Your Last Name'
               {...register('lastName')}
               error={errors.lastName?.message}
             />
@@ -82,7 +76,6 @@ const RegisterPage = () => {
           />
 
           <ConfirmPasswordField
-            password={watchedPassword}
             {...register('confirmPassword')}
             error={errors.confirmPassword?.message}
           />

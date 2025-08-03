@@ -9,7 +9,6 @@ interface EmailFieldProps {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   disabled?: boolean
-  autoComplete?: string
   error?: string
 }
 
@@ -17,13 +16,12 @@ const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(
   ({ 
     name = 'email',
     label = 'Email',
-    placeholder = 'john@example.com',
+    placeholder = 'your@email.com',
     required = true,
     value,
     onChange,
     onBlur,
     disabled = false,
-    autoComplete = 'email',
     error
   }, ref) => {
     return (
@@ -43,7 +41,7 @@ const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(
           onChange={onChange}
           onBlur={onBlur}
           disabled={disabled}
-          autoComplete={autoComplete}
+          autoComplete='email'
           className={`
             w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
             ${error 

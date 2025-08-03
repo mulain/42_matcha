@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import Form from './form'
 import Button from './button'
 
 interface AuthFormProps {
@@ -43,7 +42,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
         </div>
 
         <div className='bg-white py-8 px-6 shadow rounded-lg'>
-          <Form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className='space-y-6'>
             {children}
             {extraContent}
 
@@ -56,7 +55,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
             >
               {submitText}
             </Button>
-          </Form>
+          </form>
 
           {alternateAction && (
             <div className='mt-6 text-center'>

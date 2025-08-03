@@ -7,7 +7,6 @@ interface ConfirmPasswordFieldProps {
   placeholder?: string
   required?: boolean
   value?: string
-  password?: string // The original password to compare against
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   disabled?: boolean
@@ -23,7 +22,6 @@ const ConfirmPasswordField = forwardRef<HTMLInputElement, ConfirmPasswordFieldPr
     placeholder = '••••••••',
     required = true,
     value,
-    password = '',
     onChange,
     onBlur,
     disabled = false,

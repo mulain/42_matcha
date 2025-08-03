@@ -10,7 +10,6 @@ interface PasswordFieldProps {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   disabled?: boolean
-  autoComplete?: string
   showPasswordToggle?: boolean
   error?: string
 }
@@ -25,7 +24,6 @@ const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
     onChange,
     onBlur,
     disabled = false,
-    autoComplete = 'current-password',
     showPasswordToggle = true,
     error
   }, ref) => {
@@ -49,7 +47,7 @@ const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             onChange={onChange}
             onBlur={onBlur}
             disabled={disabled}
-            autoComplete={autoComplete}
+            autoComplete='current-password'
             className={`
               w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
               ${error 
