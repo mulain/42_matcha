@@ -1,12 +1,6 @@
-use axum::{
-    extract::DefaultBodyLimit,
-    http::Method,
-    middleware as axum_middleware,
-    response::Json,
-    routing::{delete, get, post, put},
-    Router,
-};
+use axum::{extract::DefaultBodyLimit, http::Method, response::Json, routing::get, Router};
 use serde_json::{json, Value};
+use sqlx::PgPool;
 use std::net::SocketAddr;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -23,10 +17,17 @@ mod database;
 mod enums;
 mod middleware;
 mod models;
+mod routes;
 mod services;
 mod utils;
 mod validation;
 mod websocket;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub db: PgPool,
+    pub jwt_service: services::jwt::JwtService,
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -38,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
         enums::Environment::Test => Level::ERROR,
     };
 
-    let _subscriber = FmtSubscriber::builder()
+    FmtSubscriber::builder()
         .with_max_level(max_level)
         .with_target(false)
         .with_thread_ids(true)
@@ -50,6 +51,11 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting Matcha Backend Server...");
 
     let database_pool = database::create_pool(&config.database_url).await?;
+    let jwt_service = services::jwt::JwtService::new(&config.jwt_secret);
+    let app_state = AppState {
+        db: database_pool,
+        jwt_service,
+    };
 
     let cors = CorsLayer::new()
         .allow_methods([
@@ -65,52 +71,18 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         // Health check
         .route("/health", get(health_check))
-        // Authentication routes (public)
-        .route("/api/auth/register", post(api::auth::register))
-        .route("/api/auth/login", post(api::auth::login))
-        .route("/api/auth/logout", post(api::auth::logout))
-        .route("/api/auth/verify-email", post(api::auth::verify_email))
-        .route("/api/auth/reset-password", post(api::auth::reset_password))
-        // Protected routes (require authentication)
-        // User profile routes
-        .route("/api/users/profile", get(api::users::get_profile))
-        .route("/api/users/profile", put(api::users::update_profile))
-        .route("/api/users/profile/pictures", post(api::users::upload_pictures))
-        .route("/api/users/profile/pictures/:id", delete(api::users::delete_picture))
-        // User browsing and search routes
-        .route("/api/users/browse", get(api::users::browse_users))
-        .route("/api/users/search", get(api::users::search_users))
-        .route("/api/users/:id", get(api::users::get_user_profile))
-        .route("/api/users/:id/visit", post(api::users::record_visit))
-        // User interactions
-        .route("/api/users/:id/like", post(api::interactions::like_user))
-        .route("/api/users/:id/unlike", post(api::interactions::unlike_user))
-        .route("/api/users/:id/block", post(api::interactions::block_user))
-        .route("/api/users/:id/report", post(api::interactions::report_user))
-        // Chat routes
-        .route("/api/chat/conversations", get(api::chat::get_conversations))
-        .route("/api/chat/conversations/:user_id/messages", get(api::chat::get_messages))
-        .route("/api/chat/conversations/:user_id/messages", post(api::chat::send_message))
-        // Notification routes
-        .route("/api/notifications", get(api::notifications::get_notifications))
-        .route("/api/notifications/read", post(api::notifications::mark_as_read))
-        .route("/api/notifications/read/:id", post(api::notifications::mark_single_as_read))
-        // WebSocket
-        .route("/ws", get(websocket::handle_websocket))
-        // Apply authentication middleware to protected routes
-        .layer(axum_middleware::from_fn_with_state(
-            database_pool.clone(),
-            middleware::auth::require_auth,
-        ))
-        // Database state
-        .with_state(database_pool)
+        // API routes
+        .nest("/api", routes::create_router(app_state.clone()))
+        // WebSocket routes
+        .nest("/ws", routes::websocket::create_router(app_state.clone()))
         // Middleware layers
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
                 .layer(cors)
                 .layer(DefaultBodyLimit::max(10 * 1024 * 1024)), // 10MB limit
-        );
+        )
+        .with_state(app_state);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], config.port));
     info!("Server listening on {}", addr);

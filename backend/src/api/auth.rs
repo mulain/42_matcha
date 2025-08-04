@@ -1,3 +1,4 @@
+use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::{
     extract::State,
     http::{Response, StatusCode},
@@ -5,13 +6,12 @@ use axum::{
     Form,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar};
+use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::PgPool;
-use uuid::Uuid;
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::SaltString};
-use chrono::{Duration, Utc};
 use std::time;
+use uuid::Uuid;
 
 use crate::database::user_repository::UserRepository;
 use crate::models::User;
@@ -43,11 +43,11 @@ pub struct EmailVerificationRequest {
 }
 
 pub async fn register(
-    State(pool): State<PgPool>,
+    State(state): State<crate::AppState>,
     jar: CookieJar,
     Form(data): Form<RegisterRequest>,
 ) -> impl IntoResponse {
-    let user_repo = UserRepository::new(pool);
+    let user_repo = UserRepository::new(state.db);
 
     // Validate input
     if data.email.is_empty() || data.username.is_empty() || data.password.is_empty() {
@@ -55,8 +55,9 @@ pub async fn register(
             StatusCode::BAD_REQUEST,
             Json(json!({
                 "error": "Email, username, and password are required"
-            }))
-        ).into_response();
+            })),
+        )
+            .into_response();
     }
 
     // Check if user already exists
@@ -65,8 +66,9 @@ pub async fn register(
             StatusCode::CONFLICT,
             Json(json!({
                 "error": "User with this email already exists"
-            }))
-        ).into_response();
+            })),
+        )
+            .into_response();
     }
 
     if let Ok(Some(_)) = user_repo.find_by_username(&data.username).await {
@@ -74,8 +76,9 @@ pub async fn register(
             StatusCode::CONFLICT,
             Json(json!({
                 "error": "Username already taken"
-            }))
-        ).into_response();
+            })),
+        )
+            .into_response();
     }
 
     // Hash password with Argon2
@@ -87,27 +90,42 @@ pub async fn register(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({
                     "error": "Failed to hash password"
-                }))
-            ).into_response();
+                })),
+            )
+                .into_response();
         }
     };
 
     // Create user
-    let user = match user_repo.create_user(&data.email, &data.username, &password_hash).await {
+    let user = match user_repo
+        .create_user(&data.email, &data.username, &password_hash)
+        .await
+    {
         Ok(user) => user,
         Err(_) => {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({
                     "error": "Failed to create user"
-                }))
-            ).into_response();
+                })),
+            )
+                .into_response();
         }
     };
 
-    // Generate auth token (using user ID as token for simplicity)
-    // In production, you'd want to use a proper JWT or session token
-    let auth_token = user.id.to_string();
+    // Generate JWT token
+    let auth_token = match state.jwt_service.generate_token(user.id) {
+        Ok(token) => token,
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({
+                    "error": "Failed to generate authentication token"
+                })),
+            )
+                .into_response();
+        }
+    };
 
     // Create secure cookie
     let mut cookie = Cookie::new("auth_token", auth_token);
@@ -130,16 +148,17 @@ pub async fn register(
                 "username": user.username,
                 "email_verified": user.is_email_verified()
             }
-        }))
-    ).into_response()
+        })),
+    )
+        .into_response()
 }
 
 pub async fn login(
-    State(pool): State<PgPool>,
+    State(state): State<crate::AppState>,
     jar: CookieJar,
     Form(data): Form<LoginRequest>,
 ) -> impl IntoResponse {
-    let user_repo = UserRepository::new(pool);
+    let user_repo = UserRepository::new(state.db);
 
     // Find user by email
     let user = match user_repo.find_by_email(&data.email).await {
@@ -149,16 +168,18 @@ pub async fn login(
                 StatusCode::UNAUTHORIZED,
                 Json(json!({
                     "error": "Invalid username or password"
-                }))
-            ).into_response();
+                })),
+            )
+                .into_response();
         }
         Err(_) => {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({
                     "error": "Database error"
-                }))
-            ).into_response();
+                })),
+            )
+                .into_response();
         }
     };
 
@@ -170,18 +191,23 @@ pub async fn login(
                 StatusCode::UNAUTHORIZED,
                 Json(json!({
                     "error": "Invalid username or password"
-                }))
-            ).into_response();
+                })),
+            )
+                .into_response();
         }
     };
-    
-    if !Argon2::default().verify_password(data.password.as_bytes(), &parsed_hash).is_ok() {
+
+    if !Argon2::default()
+        .verify_password(data.password.as_bytes(), &parsed_hash)
+        .is_ok()
+    {
         return (
             StatusCode::UNAUTHORIZED,
             Json(json!({
                 "error": "Invalid username or password"
-            }))
-        ).into_response();
+            })),
+        )
+            .into_response();
     }
 
     // Check if user is active
@@ -190,12 +216,24 @@ pub async fn login(
             StatusCode::FORBIDDEN,
             Json(json!({
                 "error": "Account is not active"
-            }))
-        ).into_response();
+            })),
+        )
+            .into_response();
     }
 
-    // Generate auth token (using user ID as token for simplicity)
-    let auth_token = user.id.to_string();
+    // Generate JWT token
+    let auth_token = match state.jwt_service.generate_token(user.id) {
+        Ok(token) => token,
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({
+                    "error": "Failed to generate authentication token"
+                })),
+            )
+                .into_response();
+        }
+    };
 
     // Create secure cookie
     let mut cookie = Cookie::new("auth_token", auth_token);
@@ -218,8 +256,9 @@ pub async fn login(
                 "username": user.username,
                 "email_verified": user.is_email_verified()
             }
-        }))
-    ).into_response()
+        })),
+    )
+        .into_response()
 }
 
 pub async fn logout(jar: CookieJar) -> impl IntoResponse {
@@ -238,29 +277,31 @@ pub async fn logout(jar: CookieJar) -> impl IntoResponse {
         jar,
         Json(json!({
             "message": "Logout successful"
-        }))
-    ).into_response()
+        })),
+    )
+        .into_response()
 }
 
 pub async fn verify_email(
-    State(pool): State<PgPool>,
+    State(state): State<crate::AppState>,
     Form(data): Form<EmailVerificationRequest>,
 ) -> impl IntoResponse {
-    let user_repo = UserRepository::new(pool);
+    let user_repo = UserRepository::new(state.db);
 
     // For now, we'll implement a simple token verification
     // In a real implementation, you'd store verification tokens in the database
     // and verify them properly
-    
+
     // This is a placeholder implementation
     // You should implement proper email verification token storage and validation
-    
+
     (
         StatusCode::OK,
         Json(json!({
             "message": "Email verification endpoint - token validation to be implemented"
-        }))
-    ).into_response()
+        })),
+    )
+        .into_response()
 }
 
 pub async fn reset_password() -> Json<Value> {

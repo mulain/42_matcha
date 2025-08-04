@@ -53,4 +53,4 @@ mod tests {
         assert!(values.contains(&AccountStatus::Suspended));
         assert!(values.contains(&AccountStatus::Banned));
     }
-} 
+}

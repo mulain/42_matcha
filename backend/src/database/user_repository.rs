@@ -194,7 +194,7 @@ impl UserRepository {
 
     pub async fn update_account_status(&self, id: Uuid, status: AccountStatus) -> Result<User> {
         let status_str = status.to_string();
-        
+
         // Use raw query to avoid SQLx enum type checking
         let query = format!(
             r#"
@@ -205,11 +205,8 @@ impl UserRepository {
             "#,
             status_str
         );
-        
-        let row = sqlx::query(&query)
-            .bind(id)
-            .fetch_one(&self.pool)
-            .await?;
+
+        let row = sqlx::query(&query).bind(id).fetch_one(&self.pool).await?;
 
         User::from_row(
             row.get("id"),
@@ -330,4 +327,4 @@ mod tests {
         assert_eq!(AccountStatus::Active, AccountStatus::Active);
         assert_ne!(AccountStatus::Active, AccountStatus::Suspended);
     }
-} 
+}

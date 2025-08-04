@@ -28,8 +28,8 @@ impl User {
         updated_at: DateTime<Utc>,
         deleted_at: Option<DateTime<Utc>>,
     ) -> Result<Self, anyhow::Error> {
-        let account_status = account_status
-            .ok_or_else(|| anyhow::anyhow!("Account status is required"))?;
+        let account_status =
+            account_status.ok_or_else(|| anyhow::anyhow!("Account status is required"))?;
         let account_status = account_status
             .parse::<AccountStatus>()
             .map_err(|_| anyhow::anyhow!("Invalid account status: {}", account_status))?;
@@ -55,5 +55,3 @@ impl User {
         self.email_verified_at.is_some()
     }
 }
-
- 
