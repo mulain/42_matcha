@@ -1,4 +1,4 @@
-use axum::{extract::DefaultBodyLimit, http::Method, response::Json, routing::get, Router};
+use axum::{extract::DefaultBodyLimit, http::{Method, HeaderValue, HeaderName}, response::Json, routing::get, Router};
 use serde_json::{json, Value};
 use sqlx::PgPool;
 use std::net::SocketAddr;
@@ -65,8 +65,15 @@ async fn main() -> anyhow::Result<()> {
             Method::DELETE,
             Method::OPTIONS,
         ])
-        .allow_headers(Any)
-        .allow_origin(Any);
+        .allow_headers([
+            "content-type".parse::<HeaderName>().unwrap(),
+            "authorization".parse::<HeaderName>().unwrap(),
+            "accept".parse::<HeaderName>().unwrap(),
+            "origin".parse::<HeaderName>().unwrap(),
+            "x-requested-with".parse::<HeaderName>().unwrap(),
+        ])
+        .allow_origin(config.frontend_url.parse::<HeaderValue>().unwrap())
+        .allow_credentials(true);
 
     let app = Router::new()
         // Health check

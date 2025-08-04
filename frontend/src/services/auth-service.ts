@@ -3,8 +3,8 @@ import type { LoginDTO, RegisterDTO, AuthResponse, ApiResponse } from '../types'
 
 export const authService = {
   async register(data: RegisterDTO): Promise<ApiResponse<AuthResponse>> {
-    // Convert to FormData for cookie-based auth
-    const formData = new FormData()
+    // Convert to URLSearchParams for application/x-www-form-urlencoded
+    const formData = new URLSearchParams()
     formData.append('email', data.email)
     formData.append('username', data.username)
     formData.append('password', data.password)
@@ -13,21 +13,21 @@ export const authService = {
 
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/api/auth/register', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     })
     return response.data
   },
 
   async login(data: LoginDTO): Promise<ApiResponse<AuthResponse>> {
-    // Convert to FormData for cookie-based auth
-    const formData = new FormData()
+    // Convert to URLSearchParams for application/x-www-form-urlencoded
+    const formData = new URLSearchParams()
     formData.append('email', data.email)
     formData.append('password', data.password)
 
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/api/auth/login', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     })
     return response.data
@@ -39,12 +39,12 @@ export const authService = {
   },
 
   async verifyEmail(token: string): Promise<ApiResponse<void>> {
-    const formData = new FormData()
+    const formData = new URLSearchParams()
     formData.append('token', token)
 
     const response = await apiClient.post<ApiResponse<void>>('/api/auth/verify-email', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     })
     return response.data
