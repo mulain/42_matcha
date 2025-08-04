@@ -1,35 +1,51 @@
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
 import AuthForm from '../components/auth-form'
 import { EmailField, PasswordField } from '../components/fields'
 import { loginResolver } from '../utils/form-validation'
+import { authService } from '../services/auth-service'
+import { useAuthStore } from '../store/auth-store'
+import type { LoginDTO } from '../types'
 
-interface LoginData {
-  email: string
-  password: string
-}
+
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const [error, setLocalError] = useState<string | null>(null)
+  const { login, setLoading, setError } = useAuthStore()
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<LoginData>({
+  } = useForm<LoginDTO>({
     resolver: loginResolver,
     mode: 'onBlur'
   })
 
-  const onSubmit = async (data: LoginData) => {
-    // TODO: Implement actual login API call
-    console.log('Login data:', data)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Redirect to dashboard after successful login
-    navigate('/dashboard')
+  const onSubmit = async (data: LoginDTO) => {
+    try {
+      setError(null)
+      setLoading(true)
+      
+      const response = await authService.login(data)
+      
+      if (response.success && response.data) {
+        // Update auth store with user data
+        login(response.data.user)
+        
+        // Redirect to dashboard after successful login
+        navigate('/dashboard')
+      } else {
+        setLocalError(response.error || 'Login failed')
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      setLocalError('Login failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleForgotPassword = () => {
@@ -45,6 +61,7 @@ const LoginPage = () => {
       submitText='Sign In'
       onSubmit={handleSubmit(onSubmit)}
       isLoading={isSubmitting}
+      error={error}
       alternateAction={{
         text: "Don't have an account?",
         linkText: 'Sign up',

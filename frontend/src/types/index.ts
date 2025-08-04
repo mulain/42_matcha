@@ -47,12 +47,12 @@ export enum SexualPreference {
 }
 
 // Authentication types
-export interface LoginRequest {
-  username: string
+export interface LoginDTO {
+  email: string
   password: string
 }
 
-export interface RegisterRequest {
+export interface RegisterDTO {
   username: string
   email: string
   firstName: string

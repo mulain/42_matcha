@@ -1,0 +1,20 @@
+--- FRONTEND ---
+
+Login
+- pw form validation should not trigger on pw input
+
+ProtectedRoute
+- fix auth check
+
+RegisterPage
+- login flow is bad
+
+authService
+- form data conversion necessary?
+- isAuthenticated Method here or in store?
+- getCurrentuserid method here or in store?
+
+--- BACKEND ---
+
+auth
+- review module

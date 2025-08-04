@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '../types'
+import { authService } from '../services/auth-service'
 
 interface AuthState {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
@@ -12,63 +12,64 @@ interface AuthState {
 
 interface AuthActions {
   setUser: (user: User | null) => void
-  setToken: (token: string | null) => void
   setAuthenticated: (isAuthenticated: boolean) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
-  login: (user: User, token: string) => void
+  login: (user: User) => void
   logout: () => void
   clearError: () => void
+  checkAuth: () => void
 }
 
 type AuthStore = AuthState & AuthActions
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // State
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
 
       // Actions
       setUser: (user) => set({ user }),
-      setToken: (token) => set({ token }),
       setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
 
-      login: (user, token) => {
-        localStorage.setItem('token', token)
-        localStorage.setItem('user', JSON.stringify(user))
+      login: (user) => {
         set({
           user,
-          token,
           isAuthenticated: true,
           error: null,
         })
       },
 
       logout: () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           error: null,
         })
       },
 
       clearError: () => set({ error: null }),
+
+      checkAuth: () => {
+        const isAuthenticated = authService.isAuthenticated()
+        set({ isAuthenticated })
+        
+        // If not authenticated, clear user
+        if (!isAuthenticated) {
+          set({ user: null })
+        }
+      },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     }

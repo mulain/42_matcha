@@ -1,6 +1,7 @@
 use axum::{
     extract::DefaultBodyLimit,
     http::Method,
+    middleware as axum_middleware,
     response::Json,
     routing::{delete, get, post, put},
     Router,
@@ -20,6 +21,7 @@ mod api;
 mod config;
 mod database;
 mod enums;
+mod middleware;
 mod models;
 mod services;
 mod utils;
@@ -63,12 +65,13 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         // Health check
         .route("/health", get(health_check))
-        // Authentication routes
+        // Authentication routes (public)
         .route("/api/auth/register", post(api::auth::register))
         .route("/api/auth/login", post(api::auth::login))
         .route("/api/auth/logout", post(api::auth::logout))
         .route("/api/auth/verify-email", post(api::auth::verify_email))
         .route("/api/auth/reset-password", post(api::auth::reset_password))
+        // Protected routes (require authentication)
         // User profile routes
         .route("/api/users/profile", get(api::users::get_profile))
         .route("/api/users/profile", put(api::users::update_profile))
@@ -94,6 +97,11 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/notifications/read/:id", post(api::notifications::mark_single_as_read))
         // WebSocket
         .route("/ws", get(websocket::handle_websocket))
+        // Apply authentication middleware to protected routes
+        .layer(axum_middleware::from_fn_with_state(
+            database_pool.clone(),
+            middleware::auth::require_auth,
+        ))
         // Database state
         .with_state(database_pool)
         // Middleware layers

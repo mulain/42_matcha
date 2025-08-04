@@ -1,11 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
 import AuthForm from '../components/auth-form'
 import { EmailField, PasswordField, UsernameField, NameField, ConfirmPasswordField } from '../components/fields'
 import { registerResolver, RegisterFormData } from '../utils/form-validation'
+import { authService } from '../services/auth-service'
+import { useAuthStore } from '../store/auth-store'
 
 const RegisterPage = () => {
   const navigate = useNavigate()
+  const [error, setError] = useState<string | null>(null)
+  const { login, setLoading } = useAuthStore()
   
   const {
     register,
@@ -18,16 +23,31 @@ const RegisterPage = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      // TODO: Implement actual registration API call
-      console.log('Registration data:', data)
+      setError(null)
+      setLoading(true)
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await authService.register({
+        email: data.email,
+        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+      })
       
-      // Redirect to login page after successful registration
-      navigate('/login')
-    } catch (error) {
-      console.error('Registration failed:', error)
+      if (response.success && response.data) {
+        // Update auth store with user data
+        login(response.data.user)
+        
+        // Redirect to dashboard after successful registration
+        navigate('/dashboard')
+      } else {
+        setError(response.error || 'Registration failed')
+      }
+    } catch (err) {
+      console.error('Registration error:', err)
+      setError('Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -38,6 +58,7 @@ const RegisterPage = () => {
       submitText='Create Account'
       onSubmit={handleSubmit(onSubmit)}
       isLoading={isSubmitting}
+      error={error}
       alternateAction={{
         text: 'Already have an account?',
         linkText: 'Sign in',

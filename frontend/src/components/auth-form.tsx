@@ -11,6 +11,7 @@ interface AuthFormProps {
   onSubmit: (e: React.FormEvent) => void
   isLoading?: boolean
   isDisabled?: boolean
+  error?: string | null
   alternateAction?: {
     text: string
     linkText: string
@@ -27,6 +28,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
   onSubmit,
   isLoading = false,
   isDisabled = false,
+  error,
   alternateAction,
   extraContent
 }) => {
@@ -43,6 +45,11 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
         <div className='bg-white py-8 px-6 shadow rounded-lg'>
           <form onSubmit={onSubmit} className='space-y-6'>
+            {error && (
+              <div className='bg-red-50 border border-red-200 rounded-md p-4'>
+                <p className='text-sm text-red-600'>{error}</p>
+              </div>
+            )}
             {children}
             {extraContent}
 
