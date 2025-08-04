@@ -77,7 +77,7 @@ const HeroSection = () => {
           >
             <div className='relative z-10'>
               <img
-                src='/src/assets/matcha_logo.png'
+                src='/src/assets/matcha_transparent.png'
                 alt='Matcha Dating App'
                 className='w-full h-auto rounded-2xl shadow-2xl'
                 onError={(e) => {
