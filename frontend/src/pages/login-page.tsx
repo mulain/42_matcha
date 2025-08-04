@@ -1,51 +1,17 @@
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import AuthForm from '../components/auth-form'
-import { EmailField, PasswordField } from '../components/fields'
-import { loginResolver } from '../utils/form-validation'
-import { authService } from '../services/auth-service'
-import { useAuthStore } from '../store/auth-store'
-import type { LoginDTO } from '../types'
+import LoginForm from '../components/forms/login-form'
 
 
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const [error, setLocalError] = useState<string | null>(null)
-  const { login, setLoading, setError } = useAuthStore()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm<LoginDTO>({
-    resolver: loginResolver,
-    mode: 'onBlur'
-  })
-
-  const onSubmit = async (data: LoginDTO) => {
-    try {
-      setError(null)
-      setLoading(true)
-      
-      const response = await authService.login(data)
-      
-      if (response.success && response.data) {
-        // Update auth store with user data
-        login(response.data.user)
-        
-        // Redirect to dashboard after successful login
-        navigate('/dashboard')
-      } else {
-        setLocalError(response.error || 'Login failed')
-      }
-    } catch (err) {
-      console.error('Login error:', err)
-      setLocalError('Login failed. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+  const handleSuccess = () => {
+    // Redirect to dashboard after successful login
+    navigate('/dashboard')
   }
 
   const handleForgotPassword = () => {
@@ -55,43 +21,25 @@ const LoginPage = () => {
   }
 
   return (
-    <AuthForm
-      title='Welcome back to Matcha'
-      subtitle='Sign in to your account to continue'
-      submitText='Sign In'
-      onSubmit={handleSubmit(onSubmit)}
-      isLoading={isSubmitting}
-      error={error}
-      alternateAction={{
-        text: "Don't have an account?",
-        linkText: 'Sign up',
-        linkTo: '/register'
-      }}
-      extraContent={
-        <>
-          <EmailField
-            {...register('email')}
-            error={errors.email?.message}
-          />
+    <div className='min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8'>
+      <div className='max-w-md w-full space-y-8'>
+        <div className='text-center'>
+          <Link to='/' className='flex justify-center hover:opacity-80 transition-opacity'>
+            <Heart className='w-12 h-12 text-primary-600' />
+          </Link>
+          <h2 className='mt-6 text-3xl font-bold text-gray-900'>Welcome back to Matcha</h2>
+          <p className='mt-2 text-sm text-gray-600'>Sign in to your account to continue</p>
+        </div>
 
-          <PasswordField
-            {...register('password')}
-            error={errors.password?.message}
+        <div className='bg-white py-8 px-6 shadow rounded-lg'>
+          <LoginForm
+            onSuccess={handleSuccess}
+            onForgotPassword={handleForgotPassword}
+            onSignUp={() => navigate('/register')}
           />
-
-          <div className='flex items-center justify-between'>
-            <button
-              type='button'
-              onClick={handleForgotPassword}
-              className='text-sm text-primary-600 hover:text-primary-500 font-medium'
-              disabled={isSubmitting}
-            >
-              Forgot your password?
-            </button>
-          </div>
-        </>
-      }
-    />
+        </div>
+      </div>
+    </div>
   )
 }
 
