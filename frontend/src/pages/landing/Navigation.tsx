@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
 import { Heart, ArrowRight } from 'lucide-react'
-import { useState } from 'react'
 import { useAuthStore } from '../../store/auth-store'
-import LoginModal from '../../components/LoginModal'
+import { useModal } from '../../services/modal-service'
 import backgroundImage from '../../assets/background.png'
 
 const Navigation = () => {
   const { isAuthenticated } = useAuthStore()
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const { openLoginModal } = useModal()
 
   return (
     <>
@@ -34,7 +33,7 @@ const Navigation = () => {
             ) : (
               <>
                 <button 
-                  onClick={() => setIsLoginModalOpen(true)}
+                  onClick={() => openLoginModal()}
                   className='px-4 py-2 text-white hover:text-gray-200 font-medium transition-colors bg-black bg-opacity-20 hover:bg-opacity-30 rounded-lg backdrop-blur-sm'
                 >
                   Sign In
@@ -47,15 +46,6 @@ const Navigation = () => {
           </div>
         </div>
       </nav>
-
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onSuccess={() => {
-          // Optional: Add any success logic here
-          console.log('User logged in successfully from landing page')
-        }}
-      />
     </>
   )
 }
