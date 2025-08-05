@@ -1,13 +1,14 @@
-use axum::{extract::DefaultBodyLimit, http::{Method, HeaderValue, HeaderName}, response::Json, routing::get, Router};
-use serde_json::{json, Value};
+use axum::{
+    extract::DefaultBodyLimit,
+    http::{HeaderName, HeaderValue, Method},
+    routing::get,
+    Router,
+};
 use sqlx::PgPool;
 use std::net::SocketAddr;
 use tower::ServiceBuilder;
-use tower_http::{
-    cors::{Any, CorsLayer},
-    trace::TraceLayer,
-};
-use tracing::{info, Level};
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
+use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
 // Module declarations
@@ -33,14 +34,8 @@ pub struct AppState {
 async fn main() -> anyhow::Result<()> {
     let config = config::Config::load()?;
 
-    let max_level = match config.environment {
-        enums::Environment::Development => Level::DEBUG,
-        enums::Environment::Production => Level::INFO,
-        enums::Environment::Test => Level::ERROR,
-    };
-
     FmtSubscriber::builder()
-        .with_max_level(max_level)
+        .with_max_level(config.log_level)
         .with_target(false)
         .with_thread_ids(true)
         .with_thread_names(true)
@@ -48,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
         .with_line_number(true)
         .init();
 
-    info!("Starting Matcha Backend Server...");
+    info!("Matcha Backend Server starting in {} mode", config.environment);
 
     let database_pool = database::create_pool(&config.database_url).await?;
     let jwt_service = services::jwt::JwtService::new(&config.jwt_secret);
@@ -76,13 +71,9 @@ async fn main() -> anyhow::Result<()> {
         .allow_credentials(true);
 
     let app = Router::new()
-        // Health check
-        .route("/health", get(health_check))
-        // API routes
+        .route("/health", get(routes::health_check))
         .nest("/api", routes::create_router(app_state.clone()))
-        // WebSocket routes
         .nest("/ws", routes::websocket::create_router(app_state.clone()))
-        // Middleware layers
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -97,12 +88,4 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(tokio::net::TcpListener::bind(addr).await?, app.into_make_service()).await?;
 
     Ok(())
-}
-
-async fn health_check() -> Json<Value> {
-    Json(json!({
-        "status": "healthy",
-        "service": "matcha-backend",
-        "timestamp": chrono::Utc::now().to_rfc3339()
-    }))
 }

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useState } from 'react'
-import AuthForm from '../components/AuthForm'
+import AuthForm from '../components/forms/AuthForm'
 import { EmailField, PasswordField, UsernameField, NameField, ConfirmPasswordField } from '../components/fields'
 import { registerResolver, RegisterFormData } from '../utils/form-validation'
 import { authService } from '../services/auth-service'

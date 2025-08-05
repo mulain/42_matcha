@@ -1,6 +1,7 @@
 use crate::enums::Environment;
 use crate::validation::{self, Validator};
 use std::env;
+use tracing::Level;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -16,6 +17,7 @@ pub struct Config {
     pub from_email: String,
     pub ethereal_user: String,
     pub ethereal_pass: String,
+    pub log_level: Level,
 }
 
 impl Config {
@@ -26,11 +28,18 @@ impl Config {
             env::var(name).map_err(|_| anyhow::anyhow!("'{}' env variable must be set", name))
         }
 
-        let config = Config {
-            environment: validation::enums::<Environment>()
-                .validate(&get_env_var("ENVIRONMENT")?)?
-                .ok_or_else(|| anyhow::anyhow!("ENVIRONMENT is required"))?,
+        let environment = validation::enums::<Environment>()
+            .validate(&get_env_var("ENVIRONMENT")?)?
+            .ok_or_else(|| anyhow::anyhow!("ENVIRONMENT is required"))?;
 
+        let log_level = match environment {
+            Environment::Development => Level::DEBUG,
+            Environment::Production => Level::INFO,
+            Environment::Test => Level::ERROR,
+        };
+
+        let config = Config {
+            environment,
             port: validation::number()
                 .min_value(1.0)
                 .max_value(65535.0)
@@ -81,6 +90,8 @@ impl Config {
             ethereal_pass: validation::string()
                 .validate(&get_env_var("ETHEREAL_PASS")?)?
                 .ok_or_else(|| anyhow::anyhow!("ETHEREAL_PASS is required"))?,
+
+            log_level,
         };
 
         Ok(config)

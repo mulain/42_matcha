@@ -91,5 +91,3 @@ pub async fn require_auth(
     // If no valid auth token, return unauthorized
     Err(StatusCode::UNAUTHORIZED)
 }
-
-
