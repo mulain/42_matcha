@@ -23,7 +23,7 @@ const CtaSection = () => {
           {!isAuthenticated && (
             <Link
               to='/register'
-              className='bg-white text-primary-600 hover:bg-gray-100 font-semibold py-4 px-8 rounded-lg text-lg inline-flex items-center space-x-2 transition-colors duration-200'
+              className='bg-white text-primary-600 hover:bg-gray-100 font-semibold py-2 px-8 rounded-lg text-lg inline-flex items-center space-x-2 transition-colors duration-200'
             >
               <span>Get Started Today</span>
               <ArrowRight className='w-5 h-5' />

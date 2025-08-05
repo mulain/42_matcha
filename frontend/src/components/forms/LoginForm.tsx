@@ -5,7 +5,7 @@ import { EmailField, PasswordField } from '../fields'
 import { loginResolver } from '../../utils/form-validation'
 import { authService } from '../../services/auth-service'
 import { useAuthStore } from '../../store/auth-store'
-import Button from '../button'
+import Button from '../Button'
 import type { LoginDTO } from '../../types'
 
 interface LoginFormProps {

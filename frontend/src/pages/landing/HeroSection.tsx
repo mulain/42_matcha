@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
+import matchaLogo from '../../assets/matcha_logo.png'
 
 const HeroSection = () => {
   const { isAuthenticated } = useAuthStore()
@@ -58,10 +59,10 @@ const HeroSection = () => {
             >
               {!isAuthenticated && (
                 <>
-                  <Link to='/register' className='btn-primary text-lg px-8 py-4'>
+                  <Link to='/register' className='btn-primary text-lg px-8'>
                     Start Your Adventure
                   </Link>
-                  <Link to='/login' className='btn-outline text-lg px-8 py-4'>
+                  <Link to='/login' className='btn-outline text-lg px-8'>
                     Sign In
                   </Link>
                 </>
@@ -77,13 +78,9 @@ const HeroSection = () => {
           >
             <div className='relative z-10'>
               <img
-                src='/src/assets/matcha_transparent.png'
+                src={matchaLogo}
                 alt='Matcha Dating App'
                 className='w-full h-auto rounded-2xl shadow-2xl'
-                onError={(e) => {
-                  // Fallback if image doesn't exist
-                  e.currentTarget.style.display = 'none'
-                }}
               />
             </div>
             <div className='absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl transform rotate-3 scale-105 opacity-20'></div>

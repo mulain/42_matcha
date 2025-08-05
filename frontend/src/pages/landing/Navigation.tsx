@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Heart, ArrowRight } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '../../store/auth-store'
-import LoginModal from '../../components/login-modal'
+import LoginModal from '../../components/LoginModal'
 import backgroundImage from '../../assets/background.png'
 
 const Navigation = () => {

@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import AuthForm from '../components/auth-form'
-import LoginForm from '../components/forms/login-form'
+import LoginForm from '../components/forms/LoginForm'
 
 
 

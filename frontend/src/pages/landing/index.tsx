@@ -1,8 +1,8 @@
-import Navigation from './navigation'
-import HeroSection from './hero-section'
-import FeaturesSection from './features-section'
-import CtaSection from './cta-section'
-import Footer from './footer'
+import Navigation from './Navigation'
+import HeroSection from './HeroSection'
+import FeaturesSection from './FeaturesSection'
+import CtaSection from './CtaSection'
+import Footer from './Footer'
 
 const LandingPage = () => {
   return (

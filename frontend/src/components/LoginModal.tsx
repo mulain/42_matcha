@@ -1,6 +1,6 @@
 import React from 'react'
 import { X } from 'lucide-react'
-import LoginForm from './forms/login-form'
+import LoginForm from './forms/LoginForm'
 import backgroundImage from '../assets/background.png'
 
 interface LoginModalProps {
