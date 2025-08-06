@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useModal, modalConfig } from '../services/modal-service'
 import Modal from './Modal'
 import LoginForm from './forms/LoginForm'
@@ -6,6 +7,7 @@ import backgroundImage from '../assets/background.png'
 
 const ModalProvider: React.FC = () => {
   const { activeModal, closeModal, modalData } = useModal()
+  const navigate = useNavigate()
 
   if (!activeModal) return null
 
@@ -19,8 +21,8 @@ const ModalProvider: React.FC = () => {
             theme="dark"
             onSuccess={() => {
               closeModal()
-              // Optional: Add success callback
-              console.log('Login successful!')
+              // Navigate to dashboard on successful login
+              navigate('/dashboard')
             }}
             onForgotPassword={() => {
               // TODO: Open forgot password modal

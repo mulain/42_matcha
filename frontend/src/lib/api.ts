@@ -11,18 +11,6 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-// Response interceptor to handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Redirect to login on authentication failure
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  }
-)
-
 // Generic HTTP methods
 export const apiClient = {
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {

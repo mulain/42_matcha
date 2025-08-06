@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import Modal from './Modal'
 import LoginForm from './forms/LoginForm'
 import backgroundImage from '../assets/background.png'
@@ -10,12 +11,16 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const navigate = useNavigate()
+  
   const handleClose = () => {
     onClose()
   }
 
   const handleSuccess = () => {
     onClose()
+    // Navigate to dashboard on successful login
+    navigate('/dashboard')
     if (onSuccess) {
       onSuccess()
     }
